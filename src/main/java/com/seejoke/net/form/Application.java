@@ -216,7 +216,7 @@ public class Application extends BaseForm {
         });
         change();
         //打开网站
-        openBrowser();
+        //openBrowser();
     }
 
     private JLabel lblPing;
