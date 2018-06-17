@@ -1,6 +1,7 @@
 package com.seejoke.net.utils;
 
 import org.apache.http.conn.scheme.Scheme;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -15,6 +16,9 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
 
+/**
+ * @author yangzhongying
+ */
 public class SslHttpClient {
     /**
      * 注册SSL连接

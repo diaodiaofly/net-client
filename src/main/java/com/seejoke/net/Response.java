@@ -12,6 +12,7 @@ public class Response implements Serializable {
 
     private int statusCode = 200;
 
+
     private String statusMessage = "ok";
 
     private Map<String, String> headers;

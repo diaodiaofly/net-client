@@ -2,7 +2,7 @@ package com.seejoke.net;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.seejoke.net.form.Application;
+import com.seejoke.net.conf.Constants;
 import com.seejoke.net.utils.HttpClientUtils;
 import io.socket.client.IO;
 import io.socket.client.IO.Options;
@@ -17,6 +17,7 @@ import java.util.*;
 /**
  * @author Administrator
  */
+@SuppressWarnings("AlibabaAvoidUseTimer")
 public class LocalServer {
 
     private static final String HTTP_REQUEST = "httpRequest";
@@ -40,7 +41,6 @@ public class LocalServer {
     private String forward;
 
     private String domain;
-
 
     /**
      * 流量统计
@@ -95,7 +95,7 @@ public class LocalServer {
         opts.transports = new String[]{"websocket", "polling"};
         socket = IO.socket(server, opts);
 
-        Map<String, String> eventMapper = new HashMap<String, String>();
+        Map<String, String> eventMapper = new HashMap<String, String>(16);
 
         eventMapper.put(Socket.EVENT_DISCONNECT, "断开连接");
         eventMapper.put(Socket.EVENT_ERROR, "断开错误");
@@ -163,7 +163,6 @@ public class LocalServer {
 
             @Override
             public void run() {
-
                 ping();
             }
         }, 0, 10000);
@@ -181,7 +180,7 @@ public class LocalServer {
             org.json.JSONObject jsonObject = (org.json.JSONObject) args[0];
             int code = jsonObject.getInt("code");
             String msg = jsonObject.getString("msg");
-            if (code == 1000) {
+            if (code == Constants.SUCCESS_CODE) {
                 // 弹出地址
             } else {
                 // 断开链接
@@ -220,7 +219,7 @@ public class LocalServer {
         // 发送请求
         // 替换host
         Set<String> keys = headers.keySet();
-        if ("POST".equals(method.toUpperCase())) {
+        if (HttpPost.METHOD_NAME.equals(method.toUpperCase())) {
 
             // 查看是否是json或者xml请求一类
             String encoding = "utf-8";
@@ -248,7 +247,8 @@ public class LocalServer {
                 }
 
                 // 兼容普通post和json/xml post
-                if ("application/x-www-form-urlencoded".equals(contentType)) {
+                String applicationType = "application/x-www-form-urlencoded";
+                if (applicationType.equals(contentType)) {
                     response = HttpClientUtils.post(post, request.getJSONObject("body"));
                 } else {
                     //其他的全部postBody
@@ -260,7 +260,7 @@ public class LocalServer {
                 response.setStatusMessage("本地服务器报错：" + e.getMessage());
             }
 
-        } else if ("GET".equals(method.toUpperCase())) {
+        } else if (HttpGet.METHOD_NAME.equals(method.toUpperCase())) {
             HttpGet get = new HttpGet(reqUrl);
             for (String k : keys) {
                 get.addHeader(k, String.valueOf(headers.get(k)));
@@ -326,16 +326,5 @@ public class LocalServer {
             socket = null;
         }
         callListener.ping(0L);
-    }
-
-
-    /**
-     * 启动主方法
-     *
-     * @param args
-     * @throws Exception
-     */
-    public static void main(String[] args) throws Exception {
-        new Application().setVisible(true);
     }
 }

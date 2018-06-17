@@ -2,6 +2,7 @@ package com.seejoke.net.form;
 
 import com.seejoke.net.CallListener;
 import com.seejoke.net.LocalServer;
+import com.seejoke.net.conf.Constants;
 
 import javax.swing.*;
 import javax.swing.border.EtchedBorder;
@@ -70,7 +71,7 @@ public class Application extends BaseForm {
 
             @Override
             public void actionPerformed(ActionEvent e) {
-                if ("启动服务".equals(btnAction.getText())) {
+                if (Constants.START_TEXT.equals(btnAction.getText())) {
                     try {
                         String host = txtHost.getText();
                         server = new LocalServer();
@@ -192,14 +193,14 @@ public class Application extends BaseForm {
             @Override
             public void append(String str) {
                 this.setCaretPosition(this.getDocument().getLength());
-                str = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date()) + " - " + str;
-                if (this.getText().length() > 100000) {
+                str = new SimpleDateFormat(Constants.DATE_TIME_FORMART).format(new Date()) + " - " + str;
+                if (this.getText().length() > Constants.MAX_TEXT) {
                     this.setText("");
                 }
                 super.append(str);
             }
         };
-        txtConsole.setText("官方网站:https://seejoke.com\n");
+        txtConsole.setText("官方网站:http://wenet.seejoke.com\n");
         txtConsole.setBounds(19, 181, 437, 129);
         panelConsole = new JScrollPane(txtConsole, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
         panelConsole.setLocation(20, 210);
@@ -215,8 +216,8 @@ public class Application extends BaseForm {
             }
         });
         change();
-        //打开网站
-        //openBrowser();
+        // 提升用户体验 不强制打开网站
+        // openBrowser();
     }
 
     private JLabel lblPing;
@@ -225,7 +226,7 @@ public class Application extends BaseForm {
         if (java.awt.Desktop.isDesktopSupported()) {
             try {
                 //创建一个URI实例,注意不是URL
-                java.net.URI uri = java.net.URI.create("https://seejoke.com/tools");
+                java.net.URI uri = java.net.URI.create("https://seejoke.com");
                 //获取当前系统桌面扩展
                 java.awt.Desktop dp = java.awt.Desktop.getDesktop();
                 //判断系统桌面是否支持要执行的功能
@@ -251,14 +252,14 @@ public class Application extends BaseForm {
         String text = null;
         DecimalFormat format = new DecimalFormat("#.##");
         Double value = traffic * 0.0001221d;
-        if (value <= 1024) {
+        if (value <= Constants.TRAFFIC_CAPACITY_SIZE) {
             text = format.format(value) + "KB";
-        } else if (value / 1024 > 1) {
-            text = format.format((value / 1024)) + "MB";
-        } else if (value / 1024 / 1024 > 1) {
-            text = format.format((value / 1024 / 1024)) + "GB";
-        } else if (value / 1024 / 1024 / 1024 > 1) {
-            text = format.format((value / 1024 / 1024 / 1024)) + "TB";
+        } else if (value / Constants.TRAFFIC_CAPACITY_SIZE > 1) {
+            text = format.format((value / Constants.TRAFFIC_CAPACITY_SIZE)) + "MB";
+        } else if (value / Constants.TRAFFIC_CAPACITY_SIZE / Constants.TRAFFIC_CAPACITY_SIZE > 1) {
+            text = format.format((value / Constants.TRAFFIC_CAPACITY_SIZE / Constants.TRAFFIC_CAPACITY_SIZE)) + "GB";
+        } else if (value / Constants.TRAFFIC_CAPACITY_SIZE / Constants.TRAFFIC_CAPACITY_SIZE / Constants.TRAFFIC_CAPACITY_SIZE > 1) {
+            text = format.format((value / Constants.TRAFFIC_CAPACITY_SIZE / Constants.TRAFFIC_CAPACITY_SIZE / Constants.TRAFFIC_CAPACITY_SIZE)) + "TB";
         }
         return text;
     }

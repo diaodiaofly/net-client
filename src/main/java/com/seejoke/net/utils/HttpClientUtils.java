@@ -2,6 +2,7 @@ package com.seejoke.net.utils;
 
 import com.alibaba.fastjson.JSON;
 import com.seejoke.net.Response;
+import com.seejoke.net.conf.Constants;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -41,6 +42,9 @@ import java.util.*;
 import java.util.zip.GZIPOutputStream;
 
 
+/**
+ * @author yangzhongying
+ */
 public class HttpClientUtils {
 
     private static Log log = LogFactory.getLog(HttpClientUtils.class);
@@ -343,10 +347,9 @@ public class HttpClientUtils {
         InputStream inputStream = urlConnection.getInputStream();
         String encoding = urlConnection.getContentEncoding();
         String body = IOUtils.toString(inputStream, encoding);
-        if (urlConnection.getResponseCode() != 200) {
+        if (urlConnection.getResponseCode() != Constants.HTTP_STATUS_OK) {
             throw new Exception(body);
         }
-
         return body;
     }
 
@@ -361,7 +364,8 @@ public class HttpClientUtils {
             value = value.replaceAll(" ", "");
             value = value.toLowerCase();
             int index = 0;
-            if ((index = value.lastIndexOf("charset")) != -1) {
+            String charset = "charset";
+            if ((index = value.lastIndexOf(charset)) != -1) {
                 String[] array = value.substring(index).split("=");
                 if (array.length > 1) {
                     encoding = array[1];
