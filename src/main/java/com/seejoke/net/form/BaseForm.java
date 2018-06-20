@@ -6,9 +6,6 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
 
-/**
- * @author Administrator
- */
 public class BaseForm extends JFrame {
 
     private static final long serialVersionUID = -8446051052250946428L;

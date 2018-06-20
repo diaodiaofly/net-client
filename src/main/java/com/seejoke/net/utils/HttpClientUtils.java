@@ -42,9 +42,6 @@ import java.util.*;
 import java.util.zip.GZIPOutputStream;
 
 
-/**
- * @author yangzhongying
- */
 public class HttpClientUtils {
 
     private static Log log = LogFactory.getLog(HttpClientUtils.class);

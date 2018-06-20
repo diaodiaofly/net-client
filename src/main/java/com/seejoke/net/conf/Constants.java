@@ -3,7 +3,6 @@ package com.seejoke.net.conf;
 /**
  * @author yangzhongying
  * @version 1.0
- * @email admin@seejoke.com
  * @create 2018-06-15-14:51
  **/
 public class Constants {
