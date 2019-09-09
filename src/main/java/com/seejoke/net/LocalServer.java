@@ -7,14 +7,17 @@ import com.seejoke.net.utils.HttpClientUtils;
 import io.socket.client.IO;
 import io.socket.client.IO.Options;
 import io.socket.client.Socket;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.log4j.Logger;
 import org.json.JSONException;
-
-import java.util.*;
 
 /**
  * @author Administrator
@@ -55,29 +58,24 @@ public class LocalServer {
     private long speed = 0;
 
     public void setDomain(String domain) {
-
         this.domain = domain;
     }
 
     public void setForward(String forward) {
-
         this.forward = forward;
     }
 
     public void setServer(String server) {
-
         this.server = server;
     }
 
     private CallListener callListener;
 
     public void setCallListener(CallListener callListener) {
-
         this.callListener = callListener;
     }
 
     public void ping() {
-
         if (socket == null) {
             return;
         }
@@ -221,10 +219,8 @@ public class LocalServer {
         // 发送请求
         // 替换host
         Set<String> keys = headers.keySet();
+        String encoding = "utf-8";
         if (HttpPost.METHOD_NAME.equals(method.toUpperCase())) {
-
-            // 查看是否是json或者xml请求一类
-            String encoding = "utf-8";
             String contentType = null;
             if (headers.get("content-type") != null) {
                 contentType = headers.get("content-type").toString();
@@ -289,12 +285,27 @@ public class LocalServer {
             for (String k : keys) {
                 get.addHeader(k, String.valueOf(headers.get(k)));
             }
-            try {
-                response = HttpClientUtils.put(get);
-            } catch (Exception e) {
-                response = new Response();
-                response.setStatusCode(500);
-                response.setStatusMessage("本地服务器报错：" + e.getMessage());
+            String contentType = "";
+            if (headers.get("content-type") != null) {
+                logger.debug("修改header相关信息");
+                contentType = headers.get("content-type").toString();
+                String[] array = contentType.split(";");
+                contentType = array[0];
+                if (array.length > 1) {
+                    String[] charsets = array[1].split("=");
+                    if (charsets.length > 1) {
+                        encoding = charsets[1];
+                    }
+                }
+            }
+            logger.debug("接收到的类型" + contentType);
+            if (contentType == null) {
+                contentType = "application/x-www-form-urlencoded";
+            }
+            // 兼容普通post和json/xml post
+            String applicationType = "application/x-www-form-urlencoded";
+            if (applicationType.equals(contentType)) {
+                response = HttpClientUtils.put(get, request.getJSONObject("body"));
             }
         }else {
             // 提示请求不支持

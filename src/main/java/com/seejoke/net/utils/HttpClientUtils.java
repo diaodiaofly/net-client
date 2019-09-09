@@ -3,6 +3,29 @@ package com.seejoke.net.utils;
 import com.alibaba.fastjson.JSON;
 import com.seejoke.net.Response;
 import com.seejoke.net.conf.Constants;
+import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.SocketTimeoutException;
+import java.net.URI;
+import java.net.URL;
+import java.security.GeneralSecurityException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.zip.GZIPOutputStream;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLException;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSocket;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -28,22 +51,6 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLException;
-import javax.net.ssl.SSLSession;
-import javax.net.ssl.SSLSocket;
-import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.SocketTimeoutException;
-import java.net.URI;
-import java.net.URL;
-import java.security.GeneralSecurityException;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-import java.text.ParseException;
-import java.util.*;
-import java.util.zip.GZIPOutputStream;
-
 
 /**
  * @author yangzhongying
@@ -56,8 +63,6 @@ public class HttpClientUtils {
     public final static String DEFAULT_ENCODING = "UTF-8";
 
     public final static String CONTENT_TYPE = "Content-Type";
-
-    public final static String TEXT_HTML = "text/html";
 
     private static CloseableHttpClient httpClient;
 
@@ -73,7 +78,6 @@ public class HttpClientUtils {
         // 设置连接池大小
         connMgr.setMaxTotal(100);
         connMgr.setDefaultMaxPerRoute(connMgr.getMaxTotal());
-
         RequestConfig.Builder configBuilder = RequestConfig.custom();
         // 设置连接超时
         configBuilder.setConnectTimeout(MAX_TIMEOUT);
@@ -87,7 +91,6 @@ public class HttpClientUtils {
     }
 
     public static CloseableHttpClient getClient() {
-
         if (httpClient == null) {
             //不重定向处理
             RequestConfig config = RequestConfig.custom().setConnectTimeout(60000).setConnectionRequestTimeout(60000).setSocketTimeout(60000).setRedirectsEnabled(false).build();
@@ -139,14 +142,11 @@ public class HttpClientUtils {
      * @return
      */
     public static Response post(String url, Map<String, Object> params) {
-
         HttpPost httpPost = new HttpPost(url);
-
         return post(httpPost, params);
     }
 
     public static Response postSSL(String url, Map<String, Object> params) {
-
         HttpPost httpPost = new HttpPost(url);
         return postSSL(httpPost, params);
     }
@@ -162,20 +162,7 @@ public class HttpClientUtils {
         Response res = null;
         try {
             if (params != null) {
-                List<BasicNameValuePair> basicNameValuePairs = new ArrayList<BasicNameValuePair>();
-
-                Set<String> keySet = params.keySet();
-                for (String key : keySet) {
-                    Object obj = params.get(key);
-                    String value = null;
-                    if (obj != null) {
-                        value = String.valueOf(obj);
-                    }
-                    basicNameValuePairs.add(new BasicNameValuePair(key, value));
-                }
-
-                HttpEntity httpEntity = new UrlEncodedFormEntity(basicNameValuePairs, DEFAULT_ENCODING);
-
+                HttpEntity httpEntity = new UrlEncodedFormEntity(getBasicNameValuePairs(params), DEFAULT_ENCODING);
                 httpPost.setEntity(httpEntity);
             }
             CloseableHttpResponse response = getClient().execute(httpPost);
@@ -212,29 +199,13 @@ public class HttpClientUtils {
         try {
             httpPost.addHeader("Content-Encoding", "gzip");
             if (params != null) {
-                List<BasicNameValuePair> basicNameValuePairs = new ArrayList<BasicNameValuePair>();
-
-                Set<String> keySet = params.keySet();
-                for (String key : keySet) {
-                    Object obj = params.get(key);
-                    String value = null;
-                    if (obj != null) {
-                        value = String.valueOf(obj);
-                    }
-                    basicNameValuePairs.add(new BasicNameValuePair(key, value));
-                }
-
-                // HttpEntity httpEntity = new
-                // UrlEncodedFormEntity(basicNameValuePairs, DEFAULT_ENCODING);
                 String str = JSON.toJSONString(params);
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
                 GZIPOutputStream gos = new GZIPOutputStream(baos);
                 gos.write(str.getBytes("utf-8"));
                 gos.flush();
-
                 byte[] bs = baos.toByteArray();
                 HttpEntity httpEntity = new ByteArrayEntity(bs);
-
                 httpPost.setEntity(httpEntity);
             }
             CloseableHttpResponse response = getClient().execute(httpPost);
@@ -250,19 +221,7 @@ public class HttpClientUtils {
 
         Response res = null;
         try {
-            List<BasicNameValuePair> basicNameValuePairs = new ArrayList<>();
-
-            Set<String> keySet = params.keySet();
-            for (String key : keySet) {
-                Object obj = params.get(key);
-                String value = null;
-                if (obj != null && !"".equals(obj)) {
-                    value = String.valueOf(obj);
-                }
-                basicNameValuePairs.add(new BasicNameValuePair(key, value));
-            }
-            HttpEntity httpEntity = new UrlEncodedFormEntity(basicNameValuePairs, DEFAULT_ENCODING);
-
+            HttpEntity httpEntity = new UrlEncodedFormEntity(getBasicNameValuePairs(params), DEFAULT_ENCODING);
             httpPost.setEntity(httpEntity);
             URI uri = httpPost.getURI();
             new SslHttpClient().registerSSL(uri.getHost(), "https", uri.getPort(), uri.getScheme());
@@ -277,30 +236,25 @@ public class HttpClientUtils {
     }
 
     private static SSLConnectionSocketFactory createSSLConnSocketFactory() {
-
         SSLConnectionSocketFactory sslsf = null;
         try {
             SSLContext sslContext = new SSLContextBuilder().loadTrustMaterial(null, new TrustStrategy() {
 
                 @Override
                 public boolean isTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-
                     return true;
                 }
             }).build();
             sslsf = new SSLConnectionSocketFactory(sslContext, new X509HostnameVerifier() {
-
                 @Override
                 public boolean verify(String arg0, SSLSession arg1) {
 
                     return true;
                 }
-
                 @Override
                 public void verify(String host, SSLSocket ssl) throws IOException {
 
                 }
-
                 @Override
                 public void verify(String host, X509Certificate cert) throws SSLException {
 
@@ -405,10 +359,8 @@ public class HttpClientUtils {
             headersMap.put(header.getName(), header.getValue());
         }
         res.setHeaders(headersMap);
-        // content = new String(bytes, encoding);
         EntityUtils.consume(response.getEntity());
         response.close();
-
         return res;
     }
 
@@ -437,7 +389,7 @@ public class HttpClientUtils {
     }
 
     public static Response delete(HttpDelete url) throws IOException {
-        Response rsp = new Response();
+        Response rsp = null;
         CloseableHttpClient client = null;
         try {
             client = HttpClients.createDefault();
@@ -459,26 +411,45 @@ public class HttpClientUtils {
         return rsp;
     }
 
-    public static Response put(HttpPut url) throws IOException {
-        Response rsp = new Response();
-        CloseableHttpClient client = null;
+
+    public static Response put(HttpPut httpPut, Map<String, Object> params) {
+        Response res = new Response();
         try {
-            client = HttpClients.createDefault();
-            CloseableHttpResponse response = client.execute(url);
-            int code = response.getStatusLine().getStatusCode();
-            if (HttpStatus.SC_OK == code) {
-                return getContent(response);
-            }else{
-                rsp.setStatusCode(code);
-                rsp.setStatusMessage(code+"---收到响应码非200");
+            if (params != null) {
+                log.debug(JSON.toJSONString(params));
+                HttpEntity httpEntity = new UrlEncodedFormEntity(getBasicNameValuePairs(params), DEFAULT_ENCODING);
+                httpPut.setEntity(httpEntity);
             }
+            CloseableHttpResponse response = getClient().execute(httpPut);
+            int code = response.getStatusLine().getStatusCode();
+            log.debug("响应状态:" + code);
+            res = getContent(response);
         } catch (Exception e) {
-            log.error("put方式请求远程调用失败,errorMsg="+e.getMessage());
-            rsp.setStatusCode(500);
-            rsp.setStatusMessage("请求本地服务器出错");
+            e.printStackTrace();
+            res.setStatusCode(500);
+            res.setStatusMessage("响应的目标地址出现异常");
         } finally {
-            client.close();
+            try {
+                httpClient.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
-        return rsp;
+        return res;
     }
+
+    private static List<BasicNameValuePair> getBasicNameValuePairs(Map<String, Object> params) {
+        List<BasicNameValuePair> basicNameValuePairs = new ArrayList<>(params.size());
+        Set<String> keySet = params.keySet();
+        for (String key : keySet) {
+            Object obj = params.get(key);
+            String value = null;
+            if (obj != null) {
+                value = String.valueOf(obj);
+            }
+            basicNameValuePairs.add(new BasicNameValuePair(key, value));
+        }
+        return basicNameValuePairs;
+    }
+
 }
