@@ -6,12 +6,14 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
 
+/**
+ * @author yangzhongying
+ */
 public class BaseForm extends JFrame {
 
     private static final long serialVersionUID = -8446051052250946428L;
 
     public BaseForm() {
-
         getContentPane().setLayout(null);
         getContentPane().setBackground(new Color(248, 251, 253));
         this.addWindowListener(new WindowAdapter() {
@@ -24,7 +26,6 @@ public class BaseForm extends JFrame {
             }
         });
         ImageIcon imageIcon = new ImageIcon(getClass().getResource("/logo.png"));
-
         this.setIconImage(imageIcon.getImage());
     }
 }

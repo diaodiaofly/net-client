@@ -8,11 +8,14 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpStatus;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLContextBuilder;
 import org.apache.http.conn.ssl.TrustStrategy;
@@ -42,6 +45,9 @@ import java.util.*;
 import java.util.zip.GZIPOutputStream;
 
 
+/**
+ * @author yangzhongying
+ */
 public class HttpClientUtils {
 
     private static Log log = LogFactory.getLog(HttpClientUtils.class);
@@ -52,8 +58,6 @@ public class HttpClientUtils {
     public final static String CONTENT_TYPE = "Content-Type";
 
     public final static String TEXT_HTML = "text/html";
-
-    public final static int STATUS_CODE_SUCCESS = 200;
 
     private static CloseableHttpClient httpClient;
 
@@ -86,10 +90,8 @@ public class HttpClientUtils {
 
         if (httpClient == null) {
             //不重定向处理
-            RequestConfig config = RequestConfig.custom().setConnectTimeout(100000).setConnectionRequestTimeout(100000).setSocketTimeout(100000).setRedirectsEnabled(false).build();
-
+            RequestConfig config = RequestConfig.custom().setConnectTimeout(60000).setConnectionRequestTimeout(60000).setSocketTimeout(60000).setRedirectsEnabled(false).build();
             httpClient = HttpClients.custom().setDefaultRequestConfig(config).build();
-
         }
         return httpClient;
     }
@@ -101,7 +103,6 @@ public class HttpClientUtils {
      * @return
      */
     public static Response get(String url) {
-
         HttpGet httpGet = new HttpGet(url);
         return get(httpGet);
     }
@@ -249,7 +250,7 @@ public class HttpClientUtils {
 
         Response res = null;
         try {
-            List<BasicNameValuePair> basicNameValuePairs = new ArrayList<BasicNameValuePair>();
+            List<BasicNameValuePair> basicNameValuePairs = new ArrayList<>();
 
             Set<String> keySet = params.keySet();
             for (String key : keySet) {
@@ -398,13 +399,12 @@ public class HttpClientUtils {
         res.setEncoding(encoding);
         res.setStatusCode(response.getStatusLine().getStatusCode());
 
-        Map<String, String> headersMap = new HashMap<String, String>();
+        Map<String, String> headersMap = new HashMap<>(16);
         Header[] headers = response.getAllHeaders();
         for (Header header : headers) {
             headersMap.put(header.getName(), header.getValue());
         }
         res.setHeaders(headersMap);
-
         // content = new String(bytes, encoding);
         EntityUtils.consume(response.getEntity());
         response.close();
@@ -434,5 +434,51 @@ public class HttpClientUtils {
 
         byte[] content = out.toByteArray();
         return content;
+    }
+
+    public static Response delete(HttpDelete url) throws IOException {
+        Response rsp = new Response();
+        CloseableHttpClient client = null;
+        try {
+            client = HttpClients.createDefault();
+            CloseableHttpResponse response = client.execute(url);
+            int code = response.getStatusLine().getStatusCode();
+            if (HttpStatus.SC_OK == code) {
+                return getContent(response);
+            }else{
+                rsp.setStatusCode(code);
+                rsp.setStatusMessage(code+"---收到响应码非200");
+            }
+        } catch (Exception e) {
+            log.error("DELETE方式请求远程调用失败,errorMsg="+e.getMessage());
+            rsp.setStatusCode(500);
+            rsp.setStatusMessage("请求本地服务器出错");
+        } finally {
+            client.close();
+        }
+        return rsp;
+    }
+
+    public static Response put(HttpPut url) throws IOException {
+        Response rsp = new Response();
+        CloseableHttpClient client = null;
+        try {
+            client = HttpClients.createDefault();
+            CloseableHttpResponse response = client.execute(url);
+            int code = response.getStatusLine().getStatusCode();
+            if (HttpStatus.SC_OK == code) {
+                return getContent(response);
+            }else{
+                rsp.setStatusCode(code);
+                rsp.setStatusMessage(code+"---收到响应码非200");
+            }
+        } catch (Exception e) {
+            log.error("put方式请求远程调用失败,errorMsg="+e.getMessage());
+            rsp.setStatusCode(500);
+            rsp.setStatusMessage("请求本地服务器出错");
+        } finally {
+            client.close();
+        }
+        return rsp;
     }
 }

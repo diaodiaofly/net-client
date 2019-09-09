@@ -7,8 +7,10 @@ import com.seejoke.net.utils.HttpClientUtils;
 import io.socket.client.IO;
 import io.socket.client.IO.Options;
 import io.socket.client.Socket;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.log4j.Logger;
 import org.json.JSONException;
 
@@ -239,13 +241,11 @@ public class LocalServer {
             for (String k : keys) {
                 post.addHeader(k, String.valueOf(headers.get(k)));
             }
-
             try {
                 // 默认类型application/x-www-form-urlencoded
                 if (contentType == null) {
                     contentType = "application/x-www-form-urlencoded";
                 }
-
                 // 兼容普通post和json/xml post
                 String applicationType = "application/x-www-form-urlencoded";
                 if (applicationType.equals(contentType)) {
@@ -272,7 +272,31 @@ public class LocalServer {
                 response.setStatusCode(500);
                 response.setStatusMessage("本地服务器报错：" + e.getMessage());
             }
-        } else {
+        } else if(HttpDelete.METHOD_NAME.equals(method.toUpperCase())){
+            HttpDelete get = new HttpDelete(reqUrl);
+            for (String k : keys) {
+                get.addHeader(k, String.valueOf(headers.get(k)));
+            }
+            try {
+                response = HttpClientUtils.delete(get);
+            } catch (Exception e) {
+                response = new Response();
+                response.setStatusCode(500);
+                response.setStatusMessage("本地服务器报错：" + e.getMessage());
+            }
+        } else if(HttpPut.METHOD_NAME.equals(method.toUpperCase())){
+            HttpPut get = new HttpPut(reqUrl);
+            for (String k : keys) {
+                get.addHeader(k, String.valueOf(headers.get(k)));
+            }
+            try {
+                response = HttpClientUtils.put(get);
+            } catch (Exception e) {
+                response = new Response();
+                response.setStatusCode(500);
+                response.setStatusMessage("本地服务器报错：" + e.getMessage());
+            }
+        }else {
             // 提示请求不支持
             response = new Response();
             response.setStatusCode(500);
@@ -281,7 +305,6 @@ public class LocalServer {
         }
         org.json.JSONObject jsonObject = new org.json.JSONObject();
         try {
-
             // 处理重定向
             if (response.getStatusCode() == 302 || response.getStatusCode() == 307 || response.getStatusCode() == 303) {
                 // 处理地址
@@ -289,7 +312,6 @@ public class LocalServer {
                 localtion.replace(server, domain);
                 response.getHeaders().put("Location", localtion);
             }
-
             byte[] bytes = (byte[]) response.getBody();
             if (bytes == null) {
                 bytes = new byte[]{};
@@ -320,7 +342,6 @@ public class LocalServer {
     }
 
     public void stop() {
-
         if (socket != null) {
             socket.close();
             socket = null;
