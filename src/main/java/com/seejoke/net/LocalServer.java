@@ -10,8 +10,11 @@ import io.socket.client.Socket;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -22,8 +25,10 @@ import org.json.JSONException;
 /**
  * @author Administrator
  */
-@SuppressWarnings("AlibabaAvoidUseTimer")
+@SuppressWarnings("all")
 public class LocalServer {
+
+    private ScheduledExecutorService pool = Executors.newScheduledThreadPool(5);
 
     private static final String HTTP_REQUEST = "httpRequest";
 
@@ -37,7 +42,8 @@ public class LocalServer {
 
     private static final String PING_NOTICE = "clientPingNotice";
 
-    private Logger logger = Logger.getLogger(getClass());
+    private static final Logger logger = Logger.getLogger(LocalServer.class);
+
 
     private Socket socket;
 
@@ -95,7 +101,7 @@ public class LocalServer {
         opts.transports = new String[]{"websocket", "polling"};
         socket = IO.socket(server, opts);
 
-        Map<String, String> eventMapper = new HashMap<String, String>(16);
+        Map<String, String> eventMapper = new HashMap<>(16);
 
         eventMapper.put(Socket.EVENT_DISCONNECT, "断开连接");
         eventMapper.put(Socket.EVENT_ERROR, "断开错误");
@@ -150,22 +156,18 @@ public class LocalServer {
 
             @Override
             public void run() {
-
                 long temp = speed;
                 speed = 0;
                 callListener.speedCall(temp);
-
             }
         };
-        Timer timer = new Timer();
-        timer.scheduleAtFixedRate(task, 0, 1000);
-        new Timer().scheduleAtFixedRate(new TimerTask() {
-
+        pool.scheduleAtFixedRate(task, 0, 1, TimeUnit.SECONDS);
+        pool.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
                 ping();
             }
-        }, 0, 10000);
+        }, 0, 10000, TimeUnit.SECONDS);
     }
 
     private void handlerPing(Object[] args) {
@@ -222,8 +224,8 @@ public class LocalServer {
         String encoding = "utf-8";
         if (HttpPost.METHOD_NAME.equals(method.toUpperCase())) {
             String contentType = null;
-            if (headers.get("content-type") != null) {
-                contentType = headers.get("content-type").toString();
+            if (headers.get(Constants.CONTENT_TYPE) != null) {
+                contentType = headers.get(Constants.CONTENT_TYPE).toString();
                 String[] array = contentType.split(";");
                 contentType = array[0];
                 if (array.length > 1) {
@@ -240,11 +242,9 @@ public class LocalServer {
             try {
                 // 默认类型application/x-www-form-urlencoded
                 if (contentType == null) {
-                    contentType = "application/x-www-form-urlencoded";
+                    contentType = Constants.APPLICATION_X_WWW_FORM_URLENCODED;
                 }
-                // 兼容普通post和json/xml post
-                String applicationType = "application/x-www-form-urlencoded";
-                if (applicationType.equals(contentType)) {
+                if (Constants.APPLICATION_X_WWW_FORM_URLENCODED.equals(contentType)) {
                     response = HttpClientUtils.post(post, request.getJSONObject("body"));
                 } else {
                     //其他的全部postBody
@@ -286,9 +286,9 @@ public class LocalServer {
                 get.addHeader(k, String.valueOf(headers.get(k)));
             }
             String contentType = "";
-            if (headers.get("content-type") != null) {
+            if (headers.get(Constants.CONTENT_TYPE) != null) {
                 logger.debug("修改header相关信息");
-                contentType = headers.get("content-type").toString();
+                contentType = headers.get(Constants.CONTENT_TYPE).toString();
                 String[] array = contentType.split(";");
                 contentType = array[0];
                 if (array.length > 1) {
@@ -300,11 +300,9 @@ public class LocalServer {
             }
             logger.debug("接收到的类型" + contentType);
             if (contentType == null) {
-                contentType = "application/x-www-form-urlencoded";
+                contentType = Constants.APPLICATION_X_WWW_FORM_URLENCODED;
             }
-            // 兼容普通post和json/xml post
-            String applicationType = "application/x-www-form-urlencoded";
-            if (applicationType.equals(contentType)) {
+            if (Constants.APPLICATION_X_WWW_FORM_URLENCODED.equals(contentType)) {
                 response = HttpClientUtils.put(get, request.getJSONObject("body"));
             }
         }else {
@@ -317,7 +315,9 @@ public class LocalServer {
         org.json.JSONObject jsonObject = new org.json.JSONObject();
         try {
             // 处理重定向
-            if (response.getStatusCode() == 302 || response.getStatusCode() == 307 || response.getStatusCode() == 303) {
+            if (response.getStatusCode() == HttpStatus.SC_MOVED_TEMPORARILY
+                    || response.getStatusCode() == HttpStatus.SC_TEMPORARY_REDIRECT
+                    || response.getStatusCode() == HttpStatus.SC_SEE_OTHER) {
                 // 处理地址
                 String localtion = response.getHeaders().get("Location");
                 localtion.replace(server, domain);
