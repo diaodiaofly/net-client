@@ -53,6 +53,10 @@ public class LocalServer {
 
     private String domain;
 
+    private String token;
+
+    private String version;
+
     /**
      * 流量统计
      */
@@ -62,6 +66,14 @@ public class LocalServer {
      * 实时网速统计
      */
     private long speed = 0;
+
+    public void setToken(String token) {
+        this.token = token;
+    }
+
+    public void setVersion(String version) {
+        this.version = version;
+    }
 
     public void setDomain(String domain) {
         this.domain = domain;
@@ -304,7 +316,11 @@ public class LocalServer {
             }
             if (Constants.APPLICATION_X_WWW_FORM_URLENCODED.equals(contentType)) {
                 response = HttpClientUtils.put(get, request.getJSONObject("body"));
+            } else {
+                String content = request.getString("body");
+                response = HttpClientUtils.putJson(get, content);
             }
+            logger.info(response);
         }else {
             // 提示请求不支持
             response = new Response();

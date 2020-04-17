@@ -438,6 +438,32 @@ public class HttpClientUtils {
         return res;
     }
 
+    public static Response putJson(HttpPut httpPut, String content) {
+        Response res = new Response();
+        try {
+            if (content != null) {
+                log.debug(JSON.toJSONString(content));
+                StringEntity httpEntity = new StringEntity(JSON.toJSONString(content), DEFAULT_ENCODING);
+                httpPut.setEntity(httpEntity);
+            }
+            CloseableHttpResponse response = getClient().execute(httpPut);
+            int code = response.getStatusLine().getStatusCode();
+            log.debug("响应状态:" + code);
+            res = getContent(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            res.setStatusCode(500);
+            res.setStatusMessage("响应的目标地址出现异常");
+        } finally {
+            try {
+                httpClient.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return res;
+    }
+
     private static List<BasicNameValuePair> getBasicNameValuePairs(Map<String, Object> params) {
         List<BasicNameValuePair> basicNameValuePairs = new ArrayList<>(params.size());
         Set<String> keySet = params.keySet();

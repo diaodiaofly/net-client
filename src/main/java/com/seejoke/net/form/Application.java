@@ -3,11 +3,7 @@ package com.seejoke.net.form;
 import com.seejoke.net.CallListener;
 import com.seejoke.net.LocalServer;
 import com.seejoke.net.conf.Constants;
-
-import javax.swing.*;
-import javax.swing.border.EtchedBorder;
-import javax.swing.border.TitledBorder;
-import java.awt.*;
+import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
@@ -15,6 +11,14 @@ import java.awt.event.ComponentEvent;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.border.EtchedBorder;
+import javax.swing.border.TitledBorder;
 
 /**
  * 启动主类
@@ -22,7 +26,7 @@ import java.util.Date;
  * @author yangzhongying
  * @version 1.0
  * @date 2018-06-01 16:43
- **/
+ */
 public class Application extends BaseForm {
 
     private static final long serialVersionUID = -8577615925651575124L;
@@ -44,6 +48,8 @@ public class Application extends BaseForm {
     private JLabel labelOne;
 
     private JTextField txtDomain;
+
+    private JTextField tokenDomain;
 
     private JLabel lblwezozcom;
 
@@ -67,86 +73,96 @@ public class Application extends BaseForm {
         getContentPane().add(lblStatus);
 
         btnAction = new JButton("启动服务");
-        btnAction.addActionListener(new ActionListener() {
+        btnAction.addActionListener(
+                new ActionListener() {
 
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (Constants.START_TEXT.equals(btnAction.getText())) {
-                    try {
-                        String host = txtHost.getText();
-                        server = new LocalServer();
-                        server.setServer("http://seejoke.com:3001");
-                        server.setForward(host);
-                        server.setDomain(txtDomain.getText());
-                        server.setCallListener(new CallListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        if (Constants.START_TEXT.equals(btnAction.getText())) {
+                            try {
+                                String host = txtHost.getText();
+                                server = new LocalServer();
+                                server.setServer("http://seejoke.com:3001");
+                                server.setForward(host);
+                                server.setDomain(txtDomain.getText());
+                                server.setToken(tokenDomain.getText());
+                                server.setVersion("1.1");
+                                server.setCallListener(
+                                        new CallListener() {
 
-                            @Override
-                            public void statusCall(String info) {
-                                lblStatus.setText(info);
+                                            @Override
+                                            public void statusCall(String info) {
+                                                lblStatus.setText(info);
+                                            }
+
+                                            @Override
+                                            public void eventCall(String info) {
+                                                txtConsole.append(info + "\n");
+                                            }
+
+                                            @Override
+                                            public void onClose() {
+                                                server.stop();
+                                                lblStatus.setText("服务停止");
+                                                btnAction.setText("启动服务");
+                                            }
+
+                                            @Override
+                                            public void trafficCall(long traffic) {
+
+                                                lablTraffic.setText(formatNumber(traffic));
+                                            }
+
+                                            @Override
+                                            public void speedCall(long speed) {
+                                                lblSpeed.setText(formatNumber(speed) + "/s");
+                                            }
+
+                                            @Override
+                                            public void ping(long ms) {
+                                                lblPing.setText(ms + "ms");
+                                            }
+                                        });
+                                server.start();
+                                btnAction.setText("停止服务");
+                            } catch (Exception ex) {
+                                lblStatus.setText("启动失败！请检查地址是否正确");
                             }
-
-                            @Override
-                            public void eventCall(String info) {
-                                txtConsole.append(info + "\n");
-                            }
-
-                            @Override
-                            public void onClose() {
-                                server.stop();
-                                lblStatus.setText("服务停止");
-                                btnAction.setText("启动服务");
-                            }
-
-                            @Override
-                            public void trafficCall(long traffic) {
-
-                                lablTraffic.setText(formatNumber(traffic));
-                            }
-
-                            @Override
-                            public void speedCall(long speed) {
-                                lblSpeed.setText(formatNumber(speed) + "/s");
-
-                            }
-
-                            @Override
-                            public void ping(long ms) {
-                                lblPing.setText(ms + "ms");
-                            }
-                        });
-                        server.start();
-                        btnAction.setText("停止服务");
-                    } catch (Exception ex) {
-                        lblStatus.setText("启动失败！请检查地址是否正确");
+                        } else {
+                            server.stop();
+                            lblStatus.setText("服务停止");
+                            btnAction.setText("启动服务");
+                        }
                     }
-                } else {
-                    server.stop();
-                    lblStatus.setText("服务停止");
-                    btnAction.setText("启动服务");
-                }
-            }
         });
         btnAction.setBounds(339, 22, 117, 29);
         getContentPane().add(btnAction);
 
         panelSetting = new JPanel();
         panelSetting.setBackground(new Color(248, 251, 253));
-        panelSetting.setBorder(new TitledBorder(new EtchedBorder(EtchedBorder.LOWERED, null, null), "\u7F51\u7EDC\u53C2\u6570", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
-        panelSetting.setBounds(19, 55, 506, 119);
+        panelSetting.setBorder(
+                new TitledBorder(
+                        new EtchedBorder(EtchedBorder.LOWERED, null, null),
+                        "\u7F51\u7EDC\u53C2\u6570",
+                        TitledBorder.LEADING,
+                        TitledBorder.TOP,
+                        null,
+                        new Color(0, 0, 0)));
+        panelSetting.setBounds(19, 55, 506, 149);
         getContentPane().add(panelSetting);
         panelSetting.setLayout(null);
 
-        JLabel lblip = new JLabel("转发地址(端口可修改)：");
-        lblip.setBounds(18, 64, 65, 16);
+        JLabel lblip = new JLabel("转发地址:");
+        lblip.setBounds(18, 90, 65, 16);
         panelSetting.add(lblip);
 
         txtHost = new JTextField();
         txtHost.setText("http://127.0.0.1:8080");
-        txtHost.setBounds(82, 59, 331, 26);
+        txtHost.setBounds(82, 90, 331, 26);
         panelSetting.add(txtHost);
         txtHost.setColumns(10);
 
-        labelOne = new JLabel("绑定域名：");
+        labelOne = new JLabel("绑定域名:");
         labelOne.setBounds(18, 30, 65, 16);
         panelSetting.add(labelOne);
 
@@ -159,61 +175,76 @@ public class Application extends BaseForm {
         lblwezozcom.setBounds(189, 30, 90, 16);
         panelSetting.add(lblwezozcom);
 
-        JLabel jLabel = new JLabel("流出流量：");
-        jLabel.setBounds(18, 92, 65, 16);
+        labelOne = new JLabel("授权码:");
+        labelOne.setBounds(18, 60, 65, 16);
+        panelSetting.add(labelOne);
+
+        // 授权码
+        tokenDomain = new JTextField();
+        tokenDomain.setColumns(10);
+        tokenDomain.setBounds(82, 60, 331, 26);
+        panelSetting.add(tokenDomain);
+
+        JLabel jLabel = new JLabel("流出流量:");
+        jLabel.setBounds(18, 122, 65, 16);
         panelSetting.add(jLabel);
 
         lablTraffic = new JLabel("0KB");
-        lablTraffic.setBounds(82, 92, 96, 16);
+        lablTraffic.setBounds(82, 122, 96, 16);
         panelSetting.add(lablTraffic);
 
         labelTwo = new JLabel("速度：");
-        labelTwo.setBounds(162, 92, 39, 16);
+        labelTwo.setBounds(162, 122, 39, 16);
         panelSetting.add(labelTwo);
 
         lblSpeed = new JLabel("0KB");
-        lblSpeed.setBounds(199, 92, 73, 16);
+        lblSpeed.setBounds(199, 122, 73, 16);
         panelSetting.add(lblSpeed);
 
         JLabel labelFour = new JLabel("延迟：");
-        labelFour.setBounds(305, 92, 39, 16);
+        labelFour.setBounds(305, 122, 39, 16);
         panelSetting.add(labelFour);
 
         lblPing = new JLabel("0ms");
-        lblPing.setBounds(342, 92, 123, 16);
+        lblPing.setBounds(342, 122, 123, 16);
         panelSetting.add(lblPing);
 
-        txtConsole = new JTextArea() {
+        txtConsole =
+                new JTextArea() {
 
-            /**
-             *
-             */
-            private static final long serialVersionUID = 8749801166570350982L;
+                    /** */
+                    private static final long serialVersionUID = 8749801166570350982L;
 
-            @Override
-            public void append(String str) {
-                this.setCaretPosition(this.getDocument().getLength());
-                str = new SimpleDateFormat(Constants.DATE_TIME_FORMART).format(new Date()) + " - " + str;
-                if (this.getText().length() > Constants.MAX_TEXT) {
-                    this.setText("");
-                }
-                super.append(str);
-            }
+                    @Override
+                    public void append(String str) {
+                        this.setCaretPosition(this.getDocument().getLength());
+                        str =
+                                new SimpleDateFormat(Constants.DATE_TIME_FORMART).format(new Date()) + " - " + str;
+                        if (this.getText().length() > Constants.MAX_TEXT) {
+                            this.setText("");
+                        }
+                        super.append(str);
+                    }
         };
         txtConsole.setText("官方网站:http://wenet.seejoke.com\n");
         txtConsole.setBounds(19, 181, 437, 129);
-        panelConsole = new JScrollPane(txtConsole, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+        panelConsole =
+                new JScrollPane(
+                        txtConsole,
+                        JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+                        JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
         panelConsole.setLocation(20, 210);
         panelConsole.setSize(431, 150);
 
         getContentPane().add(panelConsole);
-        this.addComponentListener(new ComponentAdapter() {
+        this.addComponentListener(
+                new ComponentAdapter() {
 
-            @Override
-            public void componentResized(ComponentEvent e) {
-                change();
-                super.componentResized(e);
-            }
+                    @Override
+                    public void componentResized(ComponentEvent e) {
+                        change();
+                        super.componentResized(e);
+                    }
         });
         change();
         // 提升用户体验 不强制打开网站
@@ -225,13 +256,13 @@ public class Application extends BaseForm {
     private void openBrowser() {
         if (java.awt.Desktop.isDesktopSupported()) {
             try {
-                //创建一个URI实例,注意不是URL
+                // 创建一个URI实例,注意不是URL
                 java.net.URI uri = java.net.URI.create("https://seejoke.com");
-                //获取当前系统桌面扩展
+                // 获取当前系统桌面扩展
                 java.awt.Desktop dp = java.awt.Desktop.getDesktop();
-                //判断系统桌面是否支持要执行的功能
+                // 判断系统桌面是否支持要执行的功能
                 if (dp.isSupported(java.awt.Desktop.Action.BROWSE)) {
-                    //获取系统默认浏览器打开链接
+                    // 获取系统默认浏览器打开链接
                     dp.browse(uri);
                 }
             } catch (NullPointerException e) {
@@ -244,7 +275,6 @@ public class Application extends BaseForm {
 
     /**
      * 格式化大小
-     *
      * @param traffic
      * @return
      */
@@ -257,9 +287,21 @@ public class Application extends BaseForm {
         } else if (value / Constants.TRAFFIC_CAPACITY_SIZE > 1) {
             text = format.format((value / Constants.TRAFFIC_CAPACITY_SIZE)) + "MB";
         } else if (value / Constants.TRAFFIC_CAPACITY_SIZE / Constants.TRAFFIC_CAPACITY_SIZE > 1) {
-            text = format.format((value / Constants.TRAFFIC_CAPACITY_SIZE / Constants.TRAFFIC_CAPACITY_SIZE)) + "GB";
-        } else if (value / Constants.TRAFFIC_CAPACITY_SIZE / Constants.TRAFFIC_CAPACITY_SIZE / Constants.TRAFFIC_CAPACITY_SIZE > 1) {
-            text = format.format((value / Constants.TRAFFIC_CAPACITY_SIZE / Constants.TRAFFIC_CAPACITY_SIZE / Constants.TRAFFIC_CAPACITY_SIZE)) + "TB";
+            text =
+                    format.format((value / Constants.TRAFFIC_CAPACITY_SIZE / Constants.TRAFFIC_CAPACITY_SIZE))
+                            + "GB";
+        } else if (value
+                / Constants.TRAFFIC_CAPACITY_SIZE
+                / Constants.TRAFFIC_CAPACITY_SIZE
+                / Constants.TRAFFIC_CAPACITY_SIZE
+                > 1) {
+            text =
+                    format.format(
+                            (value
+                                    / Constants.TRAFFIC_CAPACITY_SIZE
+                                    / Constants.TRAFFIC_CAPACITY_SIZE
+                                    / Constants.TRAFFIC_CAPACITY_SIZE))
+                            + "TB";
         }
         return text;
     }
