@@ -1,4 +1,4 @@
-package com.seejoke.net;
+package com.seejoke.net.core;
 
 /**
  * CallListener
@@ -12,21 +12,21 @@ public interface CallListener {
     /**
      * 状态改变
      *
-     * @param info
+     * @param info info
      */
     void statusCall(String info);
 
     /**
      * 事件回调
      *
-     * @param info
+     * @param info 参数
      */
     void eventCall(String info);
 
     /**
      * 流量统计
      *
-     * @param traffic
+     * @param traffic 参数
      */
     void trafficCall(long traffic);
 
@@ -34,7 +34,7 @@ public interface CallListener {
     /**
      * speedCall
      *
-     * @param speed
+     * @param speed 参数
      */
     void speedCall(long speed);
 
@@ -47,7 +47,7 @@ public interface CallListener {
     /**
      * ping
      *
-     * @param ms
+     * @param ms 毫秒
      */
     void ping(long ms);
 }

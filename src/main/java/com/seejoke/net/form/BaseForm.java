@@ -20,7 +20,6 @@ public class BaseForm extends JFrame {
 
             @Override
             public void windowClosing(WindowEvent e) {
-
                 System.exit(0);
                 super.windowClosing(e);
             }

@@ -1,4 +1,4 @@
-package com.seejoke.net;
+package com.seejoke.net.core;
 
 import io.socket.emitter.Emitter.Listener;
 

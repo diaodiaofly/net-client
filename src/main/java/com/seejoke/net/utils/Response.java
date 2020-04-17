@@ -1,17 +1,20 @@
-package com.seejoke.net;
+package com.seejoke.net.utils;
 
 import java.io.Serializable;
 import java.util.Map;
 
 /**
- * @author Administrator
- */
+ * Response
+ *
+ * @author yangzhongying
+ * @date 2018/4/17 19:04
+ * @see com.seejoke.net.utils.Response
+ **/
 public class Response implements Serializable {
 
     private static final long serialVersionUID = 5431808741731247591L;
 
     private int statusCode = 200;
-
 
     private String statusMessage = "ok";
 
@@ -67,3 +70,4 @@ public class Response implements Serializable {
     }
 
 }
+

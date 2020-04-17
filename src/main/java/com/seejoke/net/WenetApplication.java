@@ -1,9 +1,14 @@
-package com.seejoke.net.form;
+package com.seejoke.net;
 
-import com.seejoke.net.CallListener;
-import com.seejoke.net.LocalServer;
 import com.seejoke.net.conf.Constants;
-import java.awt.Color;
+import com.seejoke.net.core.CallListener;
+import com.seejoke.net.core.LocalServer;
+import com.seejoke.net.form.BaseForm;
+
+import javax.swing.*;
+import javax.swing.border.EtchedBorder;
+import javax.swing.border.TitledBorder;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
@@ -11,24 +16,15 @@ import java.awt.event.ComponentEvent;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import javax.swing.JButton;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
-import javax.swing.border.EtchedBorder;
-import javax.swing.border.TitledBorder;
 
 /**
- * 启动主类
+ * 工具启动入口
  *
  * @author yangzhongying
- * @version 1.0
- * @date 2018-06-01 16:43
- */
-public class Application extends BaseForm {
-
+ * @date 2020/4/17 19:09
+ * @see com.seejoke.net.WenetApplication
+ **/
+public class WenetApplication extends BaseForm {
     private static final long serialVersionUID = -8577615925651575124L;
 
     private JTextField txtHost;
@@ -59,7 +55,7 @@ public class Application extends BaseForm {
 
     private JLabel lblSpeed;
 
-    public Application() {
+    public WenetApplication() {
         setTitle("Net-HTTP内网穿透-交流群:15365464");
         this.setSize(546, 432);
         setLocationRelativeTo(null);
@@ -134,7 +130,7 @@ public class Application extends BaseForm {
                             btnAction.setText("启动服务");
                         }
                     }
-        });
+                });
         btnAction.setBounds(339, 22, 117, 29);
         getContentPane().add(btnAction);
 
@@ -158,7 +154,7 @@ public class Application extends BaseForm {
 
         txtHost = new JTextField();
         txtHost.setText("http://127.0.0.1:8080");
-        txtHost.setBounds(82, 90, 331, 26);
+        txtHost.setBounds(82, 85, 331, 26);
         panelSetting.add(txtHost);
         txtHost.setColumns(10);
 
@@ -175,14 +171,14 @@ public class Application extends BaseForm {
         lblwezozcom.setBounds(189, 30, 90, 16);
         panelSetting.add(lblwezozcom);
 
-        labelOne = new JLabel("授权码:");
+        labelOne = new JLabel("授权代码:");
         labelOne.setBounds(18, 60, 65, 16);
         panelSetting.add(labelOne);
 
         // 授权码
         tokenDomain = new JTextField();
         tokenDomain.setColumns(10);
-        tokenDomain.setBounds(82, 60, 331, 26);
+        tokenDomain.setBounds(82, 55, 331, 26);
         panelSetting.add(tokenDomain);
 
         JLabel jLabel = new JLabel("流出流量:");
@@ -225,7 +221,7 @@ public class Application extends BaseForm {
                         }
                         super.append(str);
                     }
-        };
+                };
         txtConsole.setText("官方网站:http://wenet.seejoke.com\n");
         txtConsole.setBounds(19, 181, 437, 129);
         panelConsole =
@@ -245,7 +241,7 @@ public class Application extends BaseForm {
                         change();
                         super.componentResized(e);
                     }
-        });
+                });
         change();
         // 提升用户体验 不强制打开网站
         // openBrowser();
@@ -275,8 +271,9 @@ public class Application extends BaseForm {
 
     /**
      * 格式化大小
-     * @param traffic
-     * @return
+     *
+     * @param traffic traffic
+     * @return String
      */
     private String formatNumber(long traffic) {
         String text = null;
@@ -307,8 +304,8 @@ public class Application extends BaseForm {
     }
 
     private void change() {
-        int width = Application.this.getWidth();
-        int height = Application.this.getHeight();
+        int width = WenetApplication.this.getWidth();
+        int height = WenetApplication.this.getHeight();
         int wv = width - 40;
         panelSetting.setSize(wv, panelSetting.getHeight());
         panelConsole.setSize(wv, height - panelConsole.getY() - 40);
@@ -316,6 +313,7 @@ public class Application extends BaseForm {
     }
 
     public static void main(String[] args) {
-        new Application().setVisible(true);
+        new WenetApplication().setVisible(true);
     }
 }
+

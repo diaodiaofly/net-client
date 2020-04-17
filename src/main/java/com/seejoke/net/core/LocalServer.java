@@ -1,19 +1,13 @@
-package com.seejoke.net;
+package com.seejoke.net.core;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.seejoke.net.conf.Constants;
 import com.seejoke.net.utils.HttpClientUtils;
+import com.seejoke.net.utils.Response;
 import io.socket.client.IO;
 import io.socket.client.IO.Options;
 import io.socket.client.Socket;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.TimerTask;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
@@ -22,10 +16,19 @@ import org.apache.http.client.methods.HttpPut;
 import org.apache.log4j.Logger;
 import org.json.JSONException;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.TimerTask;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 /**
- * @author Administrator
- */
-@SuppressWarnings("all")
+ * @author yangzhongying
+ * @date 2020/4/17 19:05
+ * @see com.seejoke.net.core LocalServer
+ **/
 public class LocalServer {
 
     private ScheduledExecutorService pool = Executors.newScheduledThreadPool(5);
@@ -101,9 +104,13 @@ public class LocalServer {
     }
 
     public void bindDomain() {
-
-        socket.emit(BIND_DOMAIN, domain);
-
+        Map<String, String> map = new HashMap<>(16);
+        map.put("domain", domain);
+        map.put("version", version);
+        map.put("token", token);
+        String content = JSON.toJSONString(map);
+        logger.info(content);
+        socket.emit(BIND_DOMAIN, content);
     }
 
     @SuppressWarnings("AlibabaAvoidUseTimer")
@@ -114,7 +121,6 @@ public class LocalServer {
         socket = IO.socket(server, opts);
 
         Map<String, String> eventMapper = new HashMap<>(16);
-
         eventMapper.put(Socket.EVENT_DISCONNECT, "断开连接");
         eventMapper.put(Socket.EVENT_ERROR, "断开错误");
         eventMapper.put(Socket.EVENT_CONNECTING, "正在连接服务器");
@@ -280,7 +286,7 @@ public class LocalServer {
                 response.setStatusCode(500);
                 response.setStatusMessage("本地服务器报错：" + e.getMessage());
             }
-        } else if(HttpDelete.METHOD_NAME.equals(method.toUpperCase())){
+        } else if (HttpDelete.METHOD_NAME.equals(method.toUpperCase())) {
             HttpDelete get = new HttpDelete(reqUrl);
             for (String k : keys) {
                 get.addHeader(k, String.valueOf(headers.get(k)));
@@ -292,7 +298,7 @@ public class LocalServer {
                 response.setStatusCode(500);
                 response.setStatusMessage("本地服务器报错：" + e.getMessage());
             }
-        } else if(HttpPut.METHOD_NAME.equals(method.toUpperCase())){
+        } else if (HttpPut.METHOD_NAME.equals(method.toUpperCase())) {
             HttpPut get = new HttpPut(reqUrl);
             for (String k : keys) {
                 get.addHeader(k, String.valueOf(headers.get(k)));
@@ -321,7 +327,7 @@ public class LocalServer {
                 response = HttpClientUtils.putJson(get, content);
             }
             logger.info(response);
-        }else {
+        } else {
             // 提示请求不支持
             response = new Response();
             response.setStatusCode(500);
