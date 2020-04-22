@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author yangzhongying
  * @date 2020/4/17 19:05
- * @see com.seejoke.net.core LocalServer
+ * @see com.seejoke.net.core.LocalServer
  **/
 public class LocalServer {
 
@@ -96,21 +96,26 @@ public class LocalServer {
         this.callListener = callListener;
     }
 
-    public void ping() {
+    private void ping() {
         if (socket == null) {
             return;
         }
         socket.emit(PING, System.currentTimeMillis());
     }
 
-    public void bindDomain() {
+    private void bindDomain() {
         Map<String, String> map = new HashMap<>(16);
-        map.put("domain", domain);
-        map.put("version", version);
-        map.put("token", token);
+        map.put("domain", this.trimString(domain));
+        map.put("version", this.trimString(version));
+        map.put("token", this.trimString(token));
+        map.put("forward", this.trimString(forward));
         String content = JSON.toJSONString(map);
         logger.info(content);
         socket.emit(BIND_DOMAIN, content);
+    }
+
+    private String trimString(String param) {
+        return param == null ? null : param.trim();
     }
 
     @SuppressWarnings("AlibabaAvoidUseTimer")
@@ -216,7 +221,7 @@ public class LocalServer {
     /**
      * 处理远程的http请求
      *
-     * @param args
+     * @param args 参数
      */
     private void handlerRequest(Object... args) {
 

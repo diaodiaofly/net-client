@@ -13,6 +13,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -56,7 +57,7 @@ public class WenetApplication extends BaseForm {
     private JLabel lblSpeed;
 
     public WenetApplication() {
-        setTitle("Net-HTTP内网穿透-交流群:15365464");
+        setTitle("Net-HTTP内网穿透-交流群:223450427");
         this.setSize(546, 432);
         setLocationRelativeTo(null);
 
@@ -105,7 +106,6 @@ public class WenetApplication extends BaseForm {
 
                                             @Override
                                             public void trafficCall(long traffic) {
-
                                                 lablTraffic.setText(formatNumber(traffic));
                                             }
 
@@ -222,7 +222,7 @@ public class WenetApplication extends BaseForm {
                         super.append(str);
                     }
                 };
-        txtConsole.setText("官方网站:http://wenet.seejoke.com\n");
+        txtConsole.setText("官方网站:https://wenat.seejoke.com\n");
         txtConsole.setBounds(19, 181, 437, 129);
         panelConsole =
                 new JScrollPane(
@@ -244,7 +244,7 @@ public class WenetApplication extends BaseForm {
                 });
         change();
         // 提升用户体验 不强制打开网站
-        // openBrowser();
+        //openBrowser();
     }
 
     private JLabel lblPing;
@@ -253,7 +253,7 @@ public class WenetApplication extends BaseForm {
         if (java.awt.Desktop.isDesktopSupported()) {
             try {
                 // 创建一个URI实例,注意不是URL
-                java.net.URI uri = java.net.URI.create("https://seejoke.com");
+                java.net.URI uri = java.net.URI.create("https://wenat.seejoke.com");
                 // 获取当前系统桌面扩展
                 java.awt.Desktop dp = java.awt.Desktop.getDesktop();
                 // 判断系统桌面是否支持要执行的功能
@@ -261,9 +261,7 @@ public class WenetApplication extends BaseForm {
                     // 获取系统默认浏览器打开链接
                     dp.browse(uri);
                 }
-            } catch (NullPointerException e) {
-                e.printStackTrace();
-            } catch (java.io.IOException e) {
+            } catch (NullPointerException | IOException e) {
                 e.printStackTrace();
             }
         }
