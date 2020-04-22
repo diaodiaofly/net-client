@@ -13,8 +13,9 @@ import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
-import org.apache.log4j.Logger;
 import org.json.JSONException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -45,7 +46,7 @@ public class LocalServer {
 
     private static final String PING_NOTICE = "clientPingNotice";
 
-    private static final Logger logger = Logger.getLogger(LocalServer.class);
+    private static final Logger logger = LoggerFactory.getLogger(LocalServer.class);
 
 
     private Socket socket;
@@ -214,7 +215,7 @@ public class LocalServer {
             }
             callListener.eventCall("[绑定域名]:" + msg);
         } catch (Exception e) {
-            logger.error(e);
+            logger.error("Exception", e);
         }
     }
 
@@ -331,7 +332,7 @@ public class LocalServer {
                 String content = request.getString("body");
                 response = HttpClientUtils.putJson(get, content);
             }
-            logger.info(response);
+            logger.debug("rsp:{}", JSON.toJSONString(response));
         } else {
             // 提示请求不支持
             response = new Response();
