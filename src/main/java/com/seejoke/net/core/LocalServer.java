@@ -8,21 +8,21 @@ import com.seejoke.net.utils.Response;
 import io.socket.client.IO;
 import io.socket.client.IO.Options;
 import io.socket.client.Socket;
+import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
+import org.apache.log4j.Logger;
 import org.json.JSONException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.TimerTask;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -32,7 +32,7 @@ import java.util.concurrent.TimeUnit;
  **/
 public class LocalServer {
 
-    private ScheduledExecutorService pool = Executors.newScheduledThreadPool(5);
+    private static ScheduledExecutorService pool = new ScheduledThreadPoolExecutor(5, new BasicThreadFactory.Builder().namingPattern("schedule-pool-%d").daemon(true).build());
 
     private static final String HTTP_REQUEST = "httpRequest";
 
@@ -46,7 +46,7 @@ public class LocalServer {
 
     private static final String PING_NOTICE = "clientPingNotice";
 
-    private static final Logger logger = LoggerFactory.getLogger(LocalServer.class);
+    private Logger logger = Logger.getLogger(getClass());
 
 
     private Socket socket;
@@ -105,13 +105,14 @@ public class LocalServer {
     }
 
     private void bindDomain() {
+        // 启动绑定参数
         Map<String, String> map = new HashMap<>(16);
         map.put("domain", this.trimString(domain));
         map.put("version", this.trimString(version));
         map.put("token", this.trimString(token));
         map.put("forward", this.trimString(forward));
         String content = JSON.toJSONString(map);
-        logger.info(content);
+        logger.debug(content);
         socket.emit(BIND_DOMAIN, content);
     }
 
@@ -197,7 +198,7 @@ public class LocalServer {
     private void handlerPing(Object[] args) {
         long time = (long) args[0];
         long ms = System.currentTimeMillis() - time;
-        callListener.ping(ms);
+        this.callListener.ping(ms);
     }
 
     private void handlerBindDomain(Object... args) {
@@ -205,15 +206,17 @@ public class LocalServer {
         try {
             org.json.JSONObject jsonObject = (org.json.JSONObject) args[0];
             int code = jsonObject.getInt("code");
+            logger.debug(code);
             String msg = jsonObject.getString("msg");
             if (code == Constants.SUCCESS_CODE) {
                 // 弹出地址
+                logger.debug("success");
             } else {
                 // 断开链接
                 socket.close();
                 callListener.onClose();
             }
-            callListener.eventCall("[绑定域名]:" + msg);
+            this.callListener.eventCall("[绑定域名]:" + msg);
         } catch (Exception e) {
             logger.error("Exception", e);
         }
@@ -237,13 +240,12 @@ public class LocalServer {
         Map<String, Object> params = request.getJSONObject("params");
 
         String reqUrl = forward + url;
-        logger.info("收到请求： methon=" + method + " url=" + reqUrl);
+        logger.info("收到请求:methon=" + method + " url=" + reqUrl);
         if (callListener != null) {
             callListener.eventCall("[远程请求]: methon=" + method + " url=" + reqUrl + " params:" + params + " headers:" + headers);
         }
         Response response = null;
         // 发送请求
-        // 替换host
         Set<String> keys = headers.keySet();
         String encoding = "utf-8";
         if (HttpPost.METHOD_NAME.equals(method.toUpperCase())) {
@@ -332,7 +334,8 @@ public class LocalServer {
                 String content = request.getString("body");
                 response = HttpClientUtils.putJson(get, content);
             }
-            logger.debug("rsp:{}", JSON.toJSONString(response));
+            String content = JSON.toJSONString(response);
+            logger.debug(content);
         } else {
             // 提示请求不支持
             response = new Response();
@@ -348,6 +351,7 @@ public class LocalServer {
                     || response.getStatusCode() == HttpStatus.SC_SEE_OTHER) {
                 // 处理地址
                 String localtion = response.getHeaders().get("Location");
+                logger.debug(localtion);
                 localtion.replace(server, domain);
                 response.getHeaders().put("Location", localtion);
             }
@@ -367,7 +371,7 @@ public class LocalServer {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        logger.info("请求响应：" + response);
+        logger.debug("请求响应：" + response);
         if (callListener != null) {
             callListener.eventCall("[目标响应]:" + response);
         }

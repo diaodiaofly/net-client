@@ -36,9 +36,9 @@ public abstract class AbstractSocketListener implements Listener {
     /**
      * 回调事件
      *
-     * @param eventName
-     * @param message
-     * @param args
+     * @param eventName e
+     * @param message m
+     * @param args a
      */
     public abstract void eventCall(String eventName, String message, Object... args);
 

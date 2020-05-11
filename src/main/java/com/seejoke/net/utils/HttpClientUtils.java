@@ -206,7 +206,6 @@ public class HttpClientUtils {
     }
 
     public static Response postSSL(HttpPost httpPost, Map<String, Object> params) {
-
         Response res = null;
         try {
             HttpEntity httpEntity = new UrlEncodedFormEntity(getBasicNameValuePairs(params), DEFAULT_ENCODING);

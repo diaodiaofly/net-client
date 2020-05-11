@@ -12,7 +12,7 @@ public class Constants {
     public static final int SUCCESS_CODE = 1000;
     public static final int TRAFFIC_CAPACITY_SIZE = 1024;
     public static final int MAX_TEXT = 100000;
-    public static final String DATE_TIME_FORMART = "yyyy-MM-dd HH:mm:ss";
+    public static final String DATE_TIME_FORMART = "MM-dd HH:mm:ss";
     public static final String CONTENT_TYPE = "content-type";
     public static final String APPLICATION_X_WWW_FORM_URLENCODED = "application/x-www-form-urlencoded";
 }

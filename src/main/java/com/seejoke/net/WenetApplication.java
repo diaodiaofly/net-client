@@ -4,6 +4,8 @@ import com.seejoke.net.conf.Constants;
 import com.seejoke.net.core.CallListener;
 import com.seejoke.net.core.LocalServer;
 import com.seejoke.net.form.BaseForm;
+import com.seejoke.net.utils.ConfigReader;
+import com.seejoke.net.utils.StringUtils;
 
 import javax.swing.*;
 import javax.swing.border.EtchedBorder;
@@ -17,6 +19,7 @@ import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Map;
 
 /**
  * 工具启动入口
@@ -57,7 +60,18 @@ public class WenetApplication extends BaseForm {
     private JLabel lblSpeed;
 
     public WenetApplication() {
-        setTitle("Net-HTTP内网穿透-交流群:223450427");
+        ConfigReader c = new ConfigReader("config.ini");
+        Map<String, Map<String, String>> config = c.get();
+        Map<String, String> clientMap = config.get("client");
+        String realmName = "";
+        String token = "";
+        String forwardUrl = "";
+        if (StringUtils.mapIsNotBlank(clientMap)) {
+            realmName = config.get("client").get("realm_name");
+            token = config.get("client").get("token");
+            forwardUrl = config.get("client").get("forward_url");
+        }
+        setTitle("WeNat-HTTP内网穿透-交流群:223450427");
         this.setSize(546, 432);
         setLocationRelativeTo(null);
 
@@ -83,7 +97,7 @@ public class WenetApplication extends BaseForm {
                                 server.setForward(host);
                                 server.setDomain(txtDomain.getText());
                                 server.setToken(tokenDomain.getText());
-                                server.setVersion("1.1");
+                                server.setVersion("1.2");
                                 server.setCallListener(
                                         new CallListener() {
 
@@ -153,7 +167,7 @@ public class WenetApplication extends BaseForm {
         panelSetting.add(lblip);
 
         txtHost = new JTextField();
-        txtHost.setText("http://127.0.0.1:8080");
+        txtHost.setText(forwardUrl);
         txtHost.setBounds(82, 85, 331, 26);
         panelSetting.add(txtHost);
         txtHost.setColumns(10);
@@ -163,6 +177,7 @@ public class WenetApplication extends BaseForm {
         panelSetting.add(labelOne);
 
         txtDomain = new JTextField();
+        txtDomain.setText(realmName);
         txtDomain.setColumns(10);
         txtDomain.setBounds(82, 25, 108, 26);
         panelSetting.add(txtDomain);
@@ -177,6 +192,7 @@ public class WenetApplication extends BaseForm {
 
         // 授权码
         tokenDomain = new JTextField();
+        tokenDomain.setText(token);
         tokenDomain.setColumns(10);
         tokenDomain.setBounds(82, 55, 331, 26);
         panelSetting.add(tokenDomain);
@@ -222,7 +238,7 @@ public class WenetApplication extends BaseForm {
                         super.append(str);
                     }
                 };
-        txtConsole.setText("官方网站:https://wenat.seejoke.com\n");
+        txtConsole.setText("官网:https://wenat.seejoke.com\n");
         txtConsole.setBounds(19, 181, 437, 129);
         panelConsole =
                 new JScrollPane(
@@ -243,8 +259,9 @@ public class WenetApplication extends BaseForm {
                     }
                 });
         change();
-        // 提升用户体验 不强制打开网站
-        //openBrowser();
+//        if (System.currentTimeMillis() % 2 == 0) {
+//            this.openBrowser();
+//        }
     }
 
     private JLabel lblPing;
